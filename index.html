@@ -6073,7 +6073,7 @@ function renderOnlineMenu() {
   text(say('Room {code} · {build}', { code: Net.code, build: BUILD }), W / 2, y, 11 * u, '#888', 'center', FONT_BODY, '600');
 }
 function renderCoopEnd() {
-  const u = Touch.on ? Math.min(UI, H / 400) : UI, win = G.coopWin, res = G.coopRes || [];
+  const u = Touch.on ? Math.min(UI, H / 400) : Math.min(UI * 1.2, H / 560), win = G.coopWin, res = G.coopRes || [];
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   const fade = clamp(G.endT / 0.8, 0, 1);
   ctx.fillStyle = `rgba(5,6,10,${0.9 * fade})`; ctx.fillRect(0, 0, W, H);
@@ -6089,8 +6089,8 @@ function renderCoopEnd() {
   if (me) {
     const k = clamp((G.endT - 0.5) / 1.6, 0, 1), r = rankOf(me[3], me[2] === 'out'), rc = { S: '#ffd24a', A: '#6affb0', B: '#4fc3ff', C: '#c9c3b8', D: '#ff8a6a' }[r];
     text(Math.round(me[3] * easeOut(k)).toLocaleString(), W / 2, y + 22 * u, 36 * u, '#ffe9a8', 'center', FONT_HEAD, 'normal');
-    if (k >= 1) text(say('RANK {r}', { r }) + (G.P.newBest && me[3] > 1000 ? '   ' + say('NEW CO-OP BEST!') : ''), W / 2, y + 52 * u, 18 * u, rc, 'center', FONT_HEAD, 'normal', true, W - 40);
-    y += 86 * u;
+    if (k >= 1) text(say('RANK {r}', { r }) + (G.P.newBest && me[3] > 1000 ? '   ' + say('NEW CO-OP BEST!') : ''), W / 2, y + 54 * u, 22 * u, rc, 'center', FONT_HEAD, 'normal', true, W - 40);
+    y += 90 * u;
   }
   // the team table
   const cols = [['', 0.02], ['Player', 0.06], ['Result', 0.34], ['Score', 0.56], ['Kills', 0.68], ['Level', 0.78], ['Revives', 0.9]];
