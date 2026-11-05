@@ -1,0 +1,21 @@
+import { chromium } from 'playwright-core';
+const base = process.argv[2];
+const browser = await chromium.launch({ executablePath: process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--mute-audio'] });
+const A = await (await browser.newContext()).newPage(), B = await (await browser.newContext()).newPage();
+for (const p of [A, B]) await p.goto(base);
+await A.waitForTimeout(2000);
+const code = await A.evaluate(() => { Net.host(); return Net.code; });
+await B.evaluate(c => Net.join(c), code);
+for (let i = 0; i < 60 && !(await B.evaluate(() => !!Net.hostPeer)); i++) await B.waitForTimeout(300);
+await A.evaluate(() => Net.startRun());
+await B.waitForTimeout(3000);
+await A.evaluate(() => { window.requestAnimationFrame = () => 0; }); // the host's window stops drawing (hidden / minimised / covered)
+await B.waitForTimeout(1000);
+const f0 = await A.evaluate(() => G.frame), a = await B.evaluate(() => ({ t: G.t, z: G.zombies.length }));
+await B.waitForTimeout(6000);
+const f1 = await A.evaluate(() => G.frame), b = await B.evaluate(() => ({ t: G.t, z: G.zombies.length }));
+const ht = await A.evaluate(() => +G.t.toFixed(1));
+console.log('host frames drawn while stalled:', f1 - f0, '(G.frame counts updates, not draws)');
+console.log('guest clock', a.t.toFixed(1), '->', b.t.toFixed(1), 'in 6 s; host clock now', ht, '; zombies', a.z, '->', b.z);
+console.log(b.t - a.t > 5 ? 'PASS the host world kept running without animation frames' : 'FAIL the host world stopped');
+await browser.close();

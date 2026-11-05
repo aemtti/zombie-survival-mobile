@@ -1,0 +1,34 @@
+import { chromium } from 'playwright-core';
+const base = process.argv[2];
+const browser = await chromium.launch({ executablePath: process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--mute-audio'] });
+const A = await (await browser.newContext()).newPage();
+const C = await (await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage();
+await A.goto(base); await C.goto(base); await A.waitForTimeout(2000);
+const code = await A.evaluate(() => { Net.host(); return Net.code; });
+await C.goto(base + '?room=' + code); await C.waitForTimeout(1200); await C.tap('[data-act=join-invite]');
+for (let i = 0; i < 60 && !(await C.evaluate(() => !!Net.hostPeer)); i++) await C.waitForTimeout(300);
+await A.evaluate(() => Net.startRun());
+await C.waitForTimeout(2500);
+await A.evaluate(() => { for (const Q of G.players) if (!Q.local) addXp(Q, 40); });
+await C.waitForTimeout(800);
+const badge = await C.evaluate(() => { const r = UIH.find(h => String(h.action).includes('openCoopModal')); return r && { x: r.x + r.w / 2, y: r.y + r.h / 2 }; });
+console.log('badge at', badge, 'picks', await C.evaluate(() => coopPicks(G.P)));
+await C.touchscreen.tap(badge.x, badge.y); await C.waitForTimeout(700);
+const m = await C.evaluate(() => ({ open: !!G.modal, cards: UIH.filter(h => String(h.action).includes('chooseOption')).map(h => ({ x: h.x + h.w / 2, y: h.y + h.h / 2 })) }));
+console.log(m.open ? 'PASS tapping the badge opens the cards' : 'FAIL badge tap', m.cards.length, 'cards');
+// left thumb still walks while the cards are open
+const p0 = await C.evaluate(() => [G.P.x, G.P.y]);
+const cdp = await C.context().newCDPSession(C);
+await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 120, y: 300, id: 1 }] });
+for (let k = 1; k <= 10; k++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 120 + k * 6, y: 300, id: 1 }] }); await C.waitForTimeout(60); }
+await C.waitForTimeout(500);
+await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+const p1 = await C.evaluate(() => [G.P.x, G.P.y, !!G.modal]);
+console.log(p1[0] - p0[0] > 20 && p1[2] ? 'PASS the left thumb walks while the cards stay open' : 'FAIL walking with cards open', JSON.stringify([p0, p1]));
+const before = await C.evaluate(() => Object.keys(G.P.cards).length);
+await C.waitForTimeout(400);
+await C.touchscreen.tap(m.cards[1].x, m.cards[1].y); await C.waitForTimeout(800);
+const after = await C.evaluate(() => Object.keys(G.P.cards).length);
+console.log(after === before + 1 ? 'PASS tapping a card picks it' : 'FAIL card tap', before, after);
+await C.screenshot({ path: 'taps-after.png' });
+await browser.close();
